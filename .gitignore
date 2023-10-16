@@ -9,6 +9,7 @@ __pycache__/
 *.pickle
 *.tif*
 *.png
+*.p
 
 
 # Distribution / packaging
