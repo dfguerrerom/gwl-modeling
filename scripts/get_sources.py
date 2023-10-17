@@ -141,7 +141,7 @@ def get_s1_image(date: str, aoi: ee.Geometry.Point) -> ee.Image:
     end = start + timedelta(days=1)
 
     image = s1_collection.create(
-        region=aoi.buffer(2000),
+        region=aoi.buffer(200),
         start_date=start,
         end_date=end,
         add_ND_ratio=False,

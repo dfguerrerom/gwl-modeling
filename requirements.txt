@@ -11,3 +11,5 @@ numpy
 pandas
 geopandas
 tqdm
+seaborn
+matplotlib
