@@ -13,3 +13,5 @@ geopandas
 tqdm
 seaborn
 matplotlib
+scipy
+scikit-learn
