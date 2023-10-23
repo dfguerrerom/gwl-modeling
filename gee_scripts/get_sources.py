@@ -253,17 +253,14 @@ def get_gedi(aoi: ee.Geometry) -> ee.Image:
     )
 
 
-def get_hansen(image: ee.Image, date: str, *_) -> ee.Image:
-    """Get the Hansen image for a given date and location."""
+def get_hansen(year):
+    """returns the hansen asset id based on the year"""
 
-    start_year = 2012
-
-    year = dt.strptime(date, "%Y-%m-%d").year
+    hansen_start_year = 2012
     year = 2022 if year >= 2023 else year
 
     # we start from version 1.0 for 2012
-    version = year - start_year
-
+    version = year - hansen_start_year
     hansen = ee.Image(f"UMD/hansen/global_forest_change_{year}_v1_{version}")
 
     b3 = hansen.select(["last_b30"], ["B3"])
@@ -276,7 +273,7 @@ def get_hansen(image: ee.Image, date: str, *_) -> ee.Image:
     ndbri = (b4.subtract(b7)).divide(b4.add(b7)).rename("ndbri")
 
     return (
-        image.addBands(b3)
+        hansen.addBands(b3)
         .addBands(b4)
         .addBands(b5)
         .addBands(b7)
