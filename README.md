@@ -8,6 +8,6 @@
 ```bash
 git clone https://github.com/dfguerrerom/gwl-modeling.git
 cd gwl-modeling
-python3 -m gee_scripts/init_venv.py
+python3 gee_scripts/init_venv.py
 ```
 
