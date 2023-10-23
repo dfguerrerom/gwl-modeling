@@ -8,8 +8,9 @@ __pycache__/
 *.tif
 *.pickle
 *.tif*
-*.png
 *.p
+*.png
+!img/*.png
 
 
 # Distribution / packaging
