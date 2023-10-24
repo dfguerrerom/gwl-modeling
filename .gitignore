@@ -12,6 +12,8 @@ __pycache__/
 *.png
 !img/*.png
 
+# I don't want to commit the original copy of the notebooks
+notebooks/*.ipynb
 
 # Distribution / packaging
 .Python
