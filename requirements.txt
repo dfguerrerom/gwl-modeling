@@ -20,4 +20,4 @@ pylab-sdk
 # to predict the model
 rasterio
 dask[diagnostics]
-tensorflow
+tensorflow==2.12.0
