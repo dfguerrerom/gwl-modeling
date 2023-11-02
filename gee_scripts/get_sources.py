@@ -257,7 +257,10 @@ def get_hansen(year):
     """returns the hansen asset id based on the year"""
 
     hansen_start_year = 2012
-    year = 2022 if year >= 2023 else year
+    last_hansen_year = 2023
+
+    # use the latest hansen data if the year is not available
+    year = 2022 if year >= last_hansen_year else year
 
     # we start from version 1.0 for 2012
     version = year - hansen_start_year
@@ -273,7 +276,8 @@ def get_hansen(year):
     ndbri = (b4.subtract(b7)).divide(b4.add(b7)).rename("ndbri")
 
     return (
-        hansen.addBands(b3)
+        ee.Image()
+        .addBands(b3)
         .addBands(b4)
         .addBands(b5)
         .addBands(b7)
@@ -281,3 +285,98 @@ def get_hansen(year):
         .addBands(ndmi)
         .addBands(ndbri)
     )
+
+
+def add_diff(image, target_date: str):
+    diff = (
+        ee.Number(image.date().millis())
+        .subtract(ee.Number(ee.Date(target_date).millis()))
+        .abs()
+    )
+    return image.set("diff", diff)
+
+
+def get_explanatory_composite(
+    target_date: str, ee_region: ee.Geometry, max_days_offset: int = 30
+):
+    """Get the closest explanatory image to the target date"""
+
+    # search range
+    max_days_offset = 30
+    year = dt.strptime(target_date, "%Y-%m-%d").year
+
+    # get start and end date using dt
+    date = dt.strptime(target_date, "%Y-%m-%d")
+    start_date = date - timedelta(days=max_days_offset)
+    end_date = date + timedelta(days=max_days_offset)
+
+    # if end_date is in the future, set it to today
+    if end_date > dt.now():
+        end_date = dt.now()
+
+    # Create a gee daterange object
+    date_range = ee.DateRange(start_date, end_date)
+
+    # For each image in the image collection, add a new property called 'diff'
+    # which is the difference between the image timestamp and the target date
+
+    # Map the function over the image collection
+    s1_composite = (
+        s1_collection.create(
+            region=ee_region,
+            start_date=date_range.start(),
+            end_date=date_range.end(),
+            add_ND_ratio=False,
+            speckle_filter="QUEGAN",
+            radiometric_correction="TERRAIN",
+            slope_correction_dict={
+                "model": "surface",
+                "dem": "USGS/SRTMGL1_003",
+                "buffer": 50,
+            },  #'CGIAR/SRTM90_V4'
+            db=True,
+        )
+        .map(lambda img: add_diff(img, target_date))
+        .select(["LIA", "VH", "VV", "VVVH_ratio", "angle"])
+    )
+
+    # Sort the image collection by the diff property
+    s1_composite = s1_composite.sort("diff")
+
+    # Get the first image (closest to the target date)
+    s1_composite = ee.Image(s1_composite.first())
+
+    # Get the image timestamp
+    s1_date = (
+        ee.Date(s1_composite.get("system:time_start")).format("YYYY-MM-dd").getInfo()
+    )
+
+    if s1_date != target_date:
+        print(
+            "WARNING: closest image is not the target date, using closest image: {} instead".format(
+                s1_date
+            )
+        )
+
+    date_range = ee.Date(target_date).getRange("day")
+    gldas_image = get_gldas(date_range, ee_region)
+    gpm_iamge = get_gpm(date_range, ee_region)
+
+    # create date of the year from string datetime
+    date = dt.strptime(s1_date, "%Y-%m-%d")
+    doy = date.timetuple().tm_yday
+
+    # Extract the year of the target date
+    composite = (
+        s1_composite.addBands(gldas_image)
+        .addBands(gpm_iamge)
+        .addBands(get_hansen(year))
+        .addBands(get_srtm())
+        .addBands(get_globcover())
+        .addBands(get_gedi(ee_region))
+        .addBands(get_gldas_stats(ee_region))
+        .addBands(ee.Image.constant(1).rename(["doy"]))
+        .toFloat()
+    )
+
+    return composite

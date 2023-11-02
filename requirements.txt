@@ -16,3 +16,8 @@ matplotlib
 scipy
 scikit-learn
 pylab-sdk
+
+# to predict the model
+rasterio
+dask[diagnostics]
+tensorflow
