@@ -11,6 +11,7 @@ __pycache__/
 *.p
 *.png
 !img/*.png
+10_models/
 
 # I don't want to commit the original copy of the notebooks
 notebooks/*.ipynb

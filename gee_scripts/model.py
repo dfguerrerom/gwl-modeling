@@ -1,6 +1,8 @@
 from typing import List, Tuple
 from tensorflow.keras.layers import concatenate, Input, LSTM, Dense
 from tensorflow.keras.models import Model
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
 
 
 def create_lstm_branch(input_shape: Tuple[int, int], units: int) -> LSTM:
@@ -27,7 +29,7 @@ def create_hybrid_model(lstm_units: int = 50, dense_units: int = 64) -> Model:
     - A compiled Keras model
     """
     # LSTM branches
-    input_shapes_time_series = [(3, 1), (7, 1), (30, 1), (3, 1), (7, 1), (30, 1)]
+    input_shapes_time_series = [(3, 1), (3, 1)]
     lstm_inputs_and_layers = [
         create_lstm_branch(shape, lstm_units) for shape in input_shapes_time_series
     ]
@@ -45,10 +47,6 @@ def create_hybrid_model(lstm_units: int = 50, dense_units: int = 64) -> Model:
 
     model = Model(inputs=all_inputs, outputs=output)
     return model
-
-
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Dense
 
 
 def create_simplified_model(input_dim: int, hidden_units: int = 64) -> Sequential:
