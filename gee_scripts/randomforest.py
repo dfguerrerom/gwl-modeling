@@ -84,7 +84,9 @@ def get_heatmap(stats_df, type_=Literal["r_local", "rmse_local"]):
         plt.rcParams["figure.figsize"] = (19, len(stats_df) / 2)
         cmap = sns.color_palette("Spectral", len(stats_df))
         # invert the color palette
-        display(sns.heatmap(stats_df[["r_local"] + temporal_expl], annot=True,cmap=cmap))
+        display(
+            sns.heatmap(stats_df[["r_local"] + temporal_expl], annot=True, cmap=cmap)
+        )
 
     if type_ == "rmse_local":
         plt.rcParams["figure.figsize"] = (1, len(stats_df) / 2)
@@ -111,5 +113,63 @@ def get_heatmap(stats_df, type_=Literal["r_local", "rmse_local"]):
             )
         )
 
-        
-def model_bootsrap()
+
+def bootstrap(
+    training_df,
+    variable="gwl_cm",
+    iterations=100,
+    train_size=0.8,
+):
+    """Run a random forest model on the data."""
+
+    train_size = train_size
+    bootstrap_stations = training_df.id.unique()
+    size = int(train_size * len(bootstrap_stations))
+
+    r_list, r2_list, rmse_list, samples_train, samples_test = [], [], [], [], []
+
+    i = 0
+    while i < iterations:
+        train_list = np.random.choice(bootstrap_stations, size=size, replace=False)
+
+        gdf_train = training_df[training_df.id.isin(train_list)].copy()
+        gdf_test = training_df[~training_df.id.isin(gdf_train.id.unique())].copy()
+
+        X_train, X_test = gdf_train[explain_vars], gdf_test[explain_vars]
+        y_train, y_test = gdf_train[variable], gdf_test[variable]
+
+        regr = get_regressor()
+        regr.fit(X_train, y_train)
+        y_pred_test = regr.predict(X_test)
+
+        samples_train.append(len(gdf_train))
+        samples_test.append(len(gdf_test))
+        r, p = pearsonr(y_test, y_pred_test)
+        r_list.append(r)
+        r2_list.append(r2_score(y_test, y_pred_test))
+        rmse_list.append(np.sqrt(mean_squared_error(y_test, y_pred_test)))
+
+        i += 1
+
+    return pd.DataFrame(
+        {
+            "r": get_stats(r_list),
+            "r2": get_stats(r2_list),
+            "rmse": get_stats(rmse_list),
+            "samples_train": get_stats(samples_train, is_sample=True),
+            "samples_test": get_stats(samples_test, is_sample=True),
+        }
+    )
+
+
+def get_stats(lst, is_sample=False):
+    arr = np.array(lst)
+    stats = {
+        "mean": arr.mean(),
+        "min": arr.min(),
+        "max": arr.max(),
+        "median": np.median(arr),
+    }
+    if is_sample:
+        del stats["median"]
+    return stats
