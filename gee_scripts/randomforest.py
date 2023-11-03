@@ -115,7 +115,7 @@ def get_heatmap(stats_df, type_=Literal["r_local", "rmse_local"]):
 
 
 def bootstrap(
-    training_df,
+    df,
     variable="gwl_cm",
     iterations=100,
     train_size=0.8,
@@ -123,7 +123,7 @@ def bootstrap(
     """Run a random forest model on the data."""
 
     train_size = train_size
-    bootstrap_stations = training_df.id.unique()
+    bootstrap_stations = df.id.unique()
     size = int(train_size * len(bootstrap_stations))
 
     r_list, r2_list, rmse_list, samples_train, samples_test = [], [], [], [], []
@@ -132,8 +132,8 @@ def bootstrap(
     while i < iterations:
         train_list = np.random.choice(bootstrap_stations, size=size, replace=False)
 
-        gdf_train = training_df[training_df.id.isin(train_list)].copy()
-        gdf_test = training_df[~training_df.id.isin(gdf_train.id.unique())].copy()
+        gdf_train = df[df.id.isin(train_list)].copy()
+        gdf_test = df[~df.id.isin(gdf_train.id.unique())].copy()
 
         X_train, X_test = gdf_train[explain_vars], gdf_test[explain_vars]
         y_train, y_test = gdf_train[variable], gdf_test[variable]
@@ -159,7 +159,7 @@ def bootstrap(
             "samples_train": get_stats(samples_train, is_sample=True),
             "samples_test": get_stats(samples_test, is_sample=True),
         }
-    )
+    ).T
 
 
 def get_stats(lst, is_sample=False):
