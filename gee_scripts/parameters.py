@@ -29,3 +29,17 @@ explain_vars = [
     "ndbri",
 ]
 response_var = ["gwl_cm"]
+
+temporal_expl = [
+    "VV",
+    "VH",
+    "VVVH_ratio",
+    "precipitation",
+    "prec_3",
+    "prec_7",
+    "prec_30",
+    "sm_1",
+    "sm_3",
+    "sm_7",
+    "sm_30",
+]
