@@ -81,7 +81,7 @@ def get_heatmap(stats_df, type_=Literal["r_local", "rmse_local"]):
 
     if type_ == "r_local":
         # Set figure size
-        plt.rcParams["figure.figsize"] = (19, 19)
+        plt.rcParams["figure.figsize"] = (19, len(stats_df) / 2)
         display(sns.heatmap(stats_df[["r_local"] + temporal_expl], annot=True))
 
     if type_ == "rmse_local":
