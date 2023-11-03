@@ -126,6 +126,8 @@ def bootstrap(
     bootstrap_stations = df.id.unique()
     size = int(train_size * len(bootstrap_stations))
 
+    print(f"Training with {len(df)} observations")
+
     r_list, r2_list, rmse_list, samples_train, samples_test = [], [], [], [], []
 
     i = 0
