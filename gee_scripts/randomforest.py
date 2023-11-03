@@ -82,7 +82,9 @@ def get_heatmap(stats_df, type_=Literal["r_local", "rmse_local"]):
     if type_ == "r_local":
         # Set figure size
         plt.rcParams["figure.figsize"] = (19, len(stats_df) / 2)
-        display(sns.heatmap(stats_df[["r_local"] + temporal_expl], annot=True))
+        cmap = sns.color_palette("Spectral", len(stats_df))
+        # invert the color palette
+        display(sns.heatmap(stats_df[["r_local"] + temporal_expl], annot=True,cmap=cmap))
 
     if type_ == "rmse_local":
         plt.rcParams["figure.figsize"] = (1, len(stats_df) / 2)
@@ -108,3 +110,6 @@ def get_heatmap(stats_df, type_=Literal["r_local", "rmse_local"]):
                 cmap=cmap,
             )
         )
+
+        
+def model_bootsrap()
