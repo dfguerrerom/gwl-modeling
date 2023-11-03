@@ -76,18 +76,35 @@ def run_randomforest(
 
 def get_heatmap(stats_df, type_=Literal["r_local", "rmse_local"]):
     """Get a heatmap of the correlation of the explanatories."""
-
     stats_df.columns = ["r_local", "rmse_local"] + temporal_expl
     stats_df.loc["mean"] = stats_df.mean()
 
     if type_ == "r_local":
+        # Set figure size
+        plt.rcParams["figure.figsize"] = (19, 19)
         display(sns.heatmap(stats_df[["r_local"] + temporal_expl], annot=True))
 
     if type_ == "rmse_local":
+        plt.rcParams["figure.figsize"] = (1, len(stats_df) / 2)
+        # Change the font size
+        plt.rcParams.update({"font.size": 10})
+        # change the y-axis font size
+        plt.yticks(fontsize=8)
+        stats_df = stats_df.sort_values(by="rmse_local")
+        stats_df = stats_df.drop("mean", axis=0)
+        stats_df.loc["mean"] = stats_df.mean()
+
+        # set figure title
+        plt.title("RMSE of stations")
+
+        cmap = sns.color_palette("Spectral", len(stats_df))
+        # invert the color palette
+        cmap = cmap[::-1]
+
         display(
             sns.heatmap(
-                stats_df[["rmse_local"] + temporal_expl].sort_values(by="rmse_local"),
+                stats_df[["rmse_local"]],
                 annot=True,
-                cmap="YlGnBu",
+                cmap=cmap,
             )
         )
