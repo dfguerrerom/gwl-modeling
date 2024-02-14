@@ -21,3 +21,12 @@ python3 gee_scripts/init_venv.py
 <p align="center">
   <img src="img/set_kernel.png" width="700">
 </p>
+
+
+
+# GEE Scripts
+
+- biophysical variables: https://code.earthengine.google.com/6c3eeb929a5ee8a42f55234b58796c0a
+
+# 14/02/2024
+- 1_get_explanatory.ipynb changed to include extra non temporal varialbes coming from the GEE script: distance to rivers/canals, accumulation points, and direction.
