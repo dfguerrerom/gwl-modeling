@@ -3,9 +3,35 @@ from datetime import datetime as dt, timedelta
 
 import ee
 
-ee.Initialize()
 
-from typing import Union
+def get_s1_dates(aoi) -> list:
+    """Get the dates of the Sentinel-1 images for a given location."""
+
+    orbits = ["ASCENDING", "DESCENDING"]
+
+    # get the image
+    return (
+        (
+            ee.ImageCollection("COPERNICUS/S1_GRD_FLOAT")
+            .filterBounds(aoi)
+            .filterMetadata("resolution_meters", "equals", 10)
+            .filter(ee.Filter.eq("instrumentMode", "IW"))
+            .filter(
+                ee.Filter.And(
+                    ee.Filter.listContains("transmitterReceiverPolarisation", "VV"),
+                    ee.Filter.listContains("transmitterReceiverPolarisation", "VH"),
+                )
+            )
+            .filter(
+                ee.Filter.Or(
+                    [ee.Filter.eq("orbitProperties_pass", orbit) for orbit in orbits]
+                )
+            )
+        )
+        .aggregate_array("system:time_start")
+        .filter(ee.Filter.gt("item", 1420070400000))
+        .getInfo()
+    )
 
 
 def get_s1_image(date: str, aoi: ee.Geometry) -> ee.Image:
@@ -296,6 +322,29 @@ def add_diff(image, target_date: str):
     return image.set("diff", diff)
 
 
+def get_extra_non_temporal():
+    """Returns the distance, dir and acc bands."""
+
+    water = ee.FeatureCollection(
+        "users/marortpab/FAO/SEPAL/2023_trainings/smm/water_bodies_phu_buff_1_km_def"
+    )
+    canals = ee.FeatureCollection(
+        "users/marortpab/FAO/SEPAL/2023_trainings/smm/prims_canal_data"
+    )
+
+    hydro_dir = ee.Image("WWF/HydroSHEDS/03DIR")
+    drain_direction = hydro_dir.select("b1").rename("dir")
+    hydro_acc = ee.Image("WWF/HydroSHEDS/15ACC")
+    flow_acc = hydro_acc.select("b1").rename("acc")
+
+    # //Merge water bodies and canals
+
+    all_water = water.merge(canals)
+    distance = all_water.distance(25000)
+
+    return distance.addBands(drain_direction).addBands(flow_acc)
+
+
 def get_explanatory_composite(
     target_date: str, ee_region: ee.Geometry, max_days_offset: int = 30
 ):
@@ -375,7 +424,8 @@ def get_explanatory_composite(
         .addBands(get_globcover())
         .addBands(get_gedi(ee_region))
         .addBands(get_gldas_stats(ee_region))
-        .addBands(ee.Image.constant(1).rename(["doy"]))
+        .addBands(ee.Image.constant(doy).rename(["doy"]))
+        .addBands(get_extra_non_temporal())
         .toFloat()
     )
 

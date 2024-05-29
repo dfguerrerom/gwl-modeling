@@ -27,6 +27,9 @@ explain_vars = [
     "ndvi",
     "ndmi",
     "ndbri",
+    "distance",
+    "dir",
+    "acc",
 ]
 response_var = ["gwl_cm"]
 

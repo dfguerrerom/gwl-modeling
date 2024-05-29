@@ -1,8 +1,6 @@
 
 
-# earthengine-api
-# USe the line below to install it on sepal
-git+https://github.com/openforis/earthengine-api.git@v0.1.384#egg=earthengine-api&subdirectory=python
+earthengine-api
 
 
 git+https://github.com/BuddyVolly/eeSar.git
