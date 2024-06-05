@@ -27,7 +27,14 @@ explain_vars = [
     "ndvi",
     "ndmi",
     "ndbri",
+    "distance",
+    "dir",
+    "acc",
+    "prec_3_sum",
+    "prec_7_sum",
+    "prec_30_sum",
 ]
+
 response_var = ["gwl_cm"]
 
 temporal_expl = [

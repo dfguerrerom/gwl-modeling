@@ -1,3 +1,5 @@
+from functools import partial
+from multiprocessing import Pool
 import pylab
 from typing import Literal, Union
 from tqdm import tqdm
@@ -18,6 +20,26 @@ plt.rcParams["figure.figsize"] = (19, 19)
 
 def get_regressor():
     """Get a random forest regressor."""
+
+    # Best parameters from the hyperparameter tuning
+    best_params = {
+        "max_depth": 20,
+        "min_samples_leaf": 1,
+        "min_samples_split": 10,
+        "n_estimators": 300,
+    }
+
+    # return RandomForestRegressor(
+    #     n_estimators=best_params["n_estimators"],
+    #     max_depth=best_params["max_depth"],
+    #     min_samples_split=best_params["min_samples_split"],
+    #     min_samples_leaf=best_params["min_samples_leaf"],
+    #     random_state=42,
+    #     oob_score=True,
+    #     criterion="friedman_mse",
+    #     n_jobs=-1,
+    # )
+    # print("ASDF")
 
     return RandomForestRegressor(
         n_estimators=250,
@@ -74,6 +96,63 @@ def run_randomforest(
     return pd.DataFrame.from_dict(row, orient="index")
 
 
+# def run_model_for_station(station_id, training_df, variable="gwl_cm"):
+#     """"""
+#     print(f"Running model for station {station_id}")
+#     explans = []
+
+#     # define training subset
+#     train_df = training_df[training_df.id != station_id]
+
+#     # define test subset
+#     test_df = training_df[training_df.id == station_id]
+
+#     X_train, X_test = train_df[explain_vars], test_df[explain_vars]
+#     y_train, y_test = train_df[variable], test_df[variable]
+
+#     regr = get_regressor()
+
+#     regr.fit(X_train, y_train)
+#     y_pred_test = regr.predict(X_test)
+
+#     r, p = pearsonr(y_test, y_pred_test)
+#     explans.append(r)
+
+#     explans.append(np.sqrt(mean_squared_error(y_test, y_pred_test)))
+
+#     # add correlation of explanatories
+#     for expl in temporal_expl:
+#         explans.append(test_df[variable].corr(test_df[expl]))
+
+#     return station_id, explans
+
+
+# def run_randomforest(
+#     training_df,
+#     variable="gwl_cm",
+#     type_="allbutone",
+# ):
+#     """Run a random forest model on the data."""
+
+#     print(f"total points: {len(training_df)}")
+#     print(f"total stations: {len(training_df.id.unique())}")
+#     print("Starting random forest model...")
+
+#     row = {}
+
+#     # All but one PHU for training
+#     with Pool() as p:
+#         func = partial(
+#             run_model_for_station, training_df=training_df, variable=variable
+#         )
+#         results = p.map(func, training_df.id.unique())
+
+#     for station_id, explans in results:
+#         row[station_id] = explans
+
+#     return pd.DataFrame.from_dict(row, orient="index")
+
+
 def get_heatmap(stats_df, type_=Literal["r_local", "rmse_local"]):
     """Get a heatmap of the correlation of the explanatories."""
     stats_df.columns = ["r_local", "rmse_local"] + temporal_expl
@@ -115,16 +194,21 @@ def get_heatmap(stats_df, type_=Literal["r_local", "rmse_local"]):
 
 
 def bootstrap(
-    df,
+    df: pd.DataFrame,
     variable="gwl_cm",
     iterations=100,
     train_size=0.8,
+    explain_vars=explain_vars,
+    bootstrap_by=Literal["stations", "observations"],
 ):
     """Run a random forest model on the data."""
 
-    train_size = train_size
-    bootstrap_stations = df.id.unique()
-    size = int(train_size * len(bootstrap_stations))
+    column = "id" if bootstrap_by == "stations" else "index"
+    df = df.copy()
+    df.reset_index(inplace=True)
+
+    bootsrap_id = df[column].unique()
+    size = int(train_size * len(bootsrap_id))
 
     print(f"Training with {len(df)} observations")
 
@@ -132,10 +216,10 @@ def bootstrap(
 
     i = 0
     while i < iterations:
-        train_list = np.random.choice(bootstrap_stations, size=size, replace=False)
+        train_list = np.random.choice(bootsrap_id, size=size, replace=False)
 
-        gdf_train = df[df.id.isin(train_list)].copy()
-        gdf_test = df[~df.id.isin(gdf_train.id.unique())].copy()
+        gdf_train = df[df[column].isin(train_list)].copy()
+        gdf_test = df[~df[column].isin(gdf_train[column].unique())].copy()
 
         X_train, X_test = gdf_train[explain_vars], gdf_test[explain_vars]
         y_train, y_test = gdf_train[variable], gdf_test[variable]
