@@ -12,10 +12,41 @@ from scipy.stats import pearsonr
 from sklearn.metrics import r2_score, mean_squared_error
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
-from .parameters import explain_vars, temporal_expl
+from .parameters import explain_vars, temporal_expl, biophysical_vars
 import matplotlib.pyplot as plt
 
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import StandardScaler
+
+
 plt.rcParams["figure.figsize"] = (19, 19)
+
+
+def get_pca(df: pd.DataFrame, n_components: int = 2) -> pd.DataFrame:
+    """Get the PCA of the data.
+
+    Args:
+        df: a pandas dataframe with stations and biophysical variables
+        n_components: the number of components to keep
+
+    Returns:
+        a pandas dataframe with the PCA components
+    """
+
+    # The biophysical variables are static on each station
+    stations_pca = df[biophysical_vars + ["lat", "lon", "id"]].drop_duplicates()
+
+    scaler = StandardScaler()
+    pca = PCA(n_components=n_components)
+
+    X = stations_pca[biophysical_vars]
+    X = scaler.fit_transform(X)
+    X = pca.fit_transform(X)
+
+    for i in range(n_components):
+        stations_pca[f"pca_{i}"] = X[:, i]
+
+    return stations_pca
 
 
 def get_regressor():
@@ -94,63 +125,6 @@ def run_randomforest(
         row[station_id] = explans
 
     return pd.DataFrame.from_dict(row, orient="index")
-
-
-# def run_model_for_station(station_id, training_df, variable="gwl_cm"):
-#     """"""
-#     print(f"Running model for station {station_id}")
-#     explans = []
-
-#     # define training subset
-#     train_df = training_df[training_df.id != station_id]
-
-#     # define test subset
-#     test_df = training_df[training_df.id == station_id]
-
-#     X_train, X_test = train_df[explain_vars], test_df[explain_vars]
-#     y_train, y_test = train_df[variable], test_df[variable]
-
-#     regr = get_regressor()
-
-#     regr.fit(X_train, y_train)
-#     y_pred_test = regr.predict(X_test)
-
-#     r, p = pearsonr(y_test, y_pred_test)
-#     explans.append(r)
-
-#     explans.append(np.sqrt(mean_squared_error(y_test, y_pred_test)))
-
-#     # add correlation of explanatories
-#     for expl in temporal_expl:
-#         explans.append(test_df[variable].corr(test_df[expl]))
-
-#     return station_id, explans
-
-
-# def run_randomforest(
-#     training_df,
-#     variable="gwl_cm",
-#     type_="allbutone",
-# ):
-#     """Run a random forest model on the data."""
-
-#     print(f"total points: {len(training_df)}")
-#     print(f"total stations: {len(training_df.id.unique())}")
-#     print("Starting random forest model...")
-
-#     row = {}
-
-#     # All but one PHU for training
-#     with Pool() as p:
-#         func = partial(
-#             run_model_for_station, training_df=training_df, variable=variable
-#         )
-#         results = p.map(func, training_df.id.unique())
-
-#     for station_id, explans in results:
-#         row[station_id] = explans
-
-#     return pd.DataFrame.from_dict(row, orient="index")
 
 
 def get_heatmap(stats_df, type_=Literal["r_local", "rmse_local"]):

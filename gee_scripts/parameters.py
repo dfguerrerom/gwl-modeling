@@ -35,6 +35,17 @@ explain_vars = [
     "prec_30_sum",
 ]
 
+biophysical_vars = [
+    "elevation",
+    "aspect",
+    "slope",
+    "land_cov",
+    "canopy_height",
+    "distance",
+    "dir",
+    "acc",
+]
+
 response_var = ["gwl_cm"]
 
 temporal_expl = [
