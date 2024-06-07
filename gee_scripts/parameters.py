@@ -61,3 +61,7 @@ temporal_expl = [
     "sm_7",
     "sm_30",
 ]
+
+west_region_ids = [1, 6, 5, 2, 4]
+center_region_ids = [7, 8, 10]
+east_region_ids = [3, 9]

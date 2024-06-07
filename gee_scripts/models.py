@@ -2,12 +2,13 @@ from functools import partial
 from multiprocessing import Pool
 import pylab
 from typing import Literal, Union
+from sklearn.linear_model import LinearRegression
 from tqdm import tqdm
 
 from IPython.display import display
 import seaborn as sns
 import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
+from sklearn.ensemble import GradientBoostingRegressor, RandomForestRegressor
 from scipy.stats import pearsonr
 from sklearn.metrics import r2_score, mean_squared_error
 import numpy as np
@@ -17,7 +18,8 @@ import matplotlib.pyplot as plt
 
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
-
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout
 
 plt.rcParams["figure.figsize"] = (19, 19)
 
@@ -49,7 +51,7 @@ def get_pca(df: pd.DataFrame, n_components: int = 2) -> pd.DataFrame:
     return stations_pca
 
 
-def get_regressor():
+def get_random_forest():
     """Get a random forest regressor."""
 
     # Best parameters from the hyperparameter tuning
@@ -82,6 +84,51 @@ def get_regressor():
     )
 
 
+def get_gradientboosting():
+    """Return a gradient boosting regressor."""
+
+    return GradientBoostingRegressor(
+        n_estimators=250,
+        min_samples_leaf=1,
+        random_state=42,
+        criterion="friedman_mse",
+    )
+
+
+def get_linear_regressor():
+    """Return a linear regressor."""
+
+    return LinearRegression()
+
+
+def get_neural_network_model(input_dim=len(explain_vars)):
+    model = Sequential(
+        [
+            Dense(128, activation="relu", input_shape=(input_dim,)),
+            Dropout(0.1),
+            Dense(64, activation="relu"),
+            Dropout(0.1),
+            Dense(32, activation="relu"),
+            Dense(1),  # Output layer for regression; no activation function
+        ]
+    )
+    model.compile(
+        optimizer="adam", loss="mean_squared_error", metrics=["mean_squared_error"]
+    )
+    return model
+
+
+def get_regressors(input_dim):
+    """Get a list of regressors."""
+
+    return [
+        get_random_forest(),
+        get_gradientboosting(),
+        get_linear_regressor(),
+        get_neural_network_model(input_dim),
+    ]
+
+
 def run_randomforest(
     training_df,
     variable="gwl_cm",
@@ -108,7 +155,7 @@ def run_randomforest(
         X_train, X_test = train_df[explain_vars], test_df[explain_vars]
         y_train, y_test = train_df[variable], test_df[variable]
 
-        regr = get_regressor()
+        regr = get_random_forest()
 
         regr.fit(X_train, y_train)
         y_pred_test = regr.predict(X_test)
@@ -198,7 +245,7 @@ def bootstrap(
         X_train, X_test = gdf_train[explain_vars], gdf_test[explain_vars]
         y_train, y_test = gdf_train[variable], gdf_test[variable]
 
-        regr = get_regressor()
+        regr = get_random_forest()
         regr.fit(X_train, y_train)
         y_pred_test = regr.predict(X_test)
 
