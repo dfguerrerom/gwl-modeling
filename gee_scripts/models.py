@@ -280,3 +280,67 @@ def get_stats(lst, is_sample=False):
     if is_sample:
         del stats["median"]
     return stats
+
+
+import pandas as pd
+from typing import Tuple, Literal
+from sklearn.model_selection import GroupShuffleSplit, train_test_split
+
+
+def split_dataset(
+    df: pd.DataFrame,
+    by: Literal["year", "month", "station"],
+    n_splits=5,
+    test_size=0.2,
+    min_test_samples=20,
+) -> Tuple[list, list]:
+    """Split the dataset into training and test sets by specified 'by' category with approximately 80/20 distribution,
+    taking into account categories with limited data.
+
+    Args:
+        df (pd.DataFrame): The dataframe containing the data to be split.
+        by (Literal): The category by which to split ('year', 'month', or 'station').
+        n_splits (int): The number of splits (default 5).
+        min_samples_per_category (int): Minimum samples per category to proceed with a split.
+
+    Returns:
+        Tuple[list, list]: A tuple containing lists of dataframes representing the training and test splits.
+    """
+
+    df = df.copy()
+
+    # Assert that the date column is in datetime format in all cases
+    assert df["date"].dtypes == "datetime64[ns]"
+
+    if by == "year":
+        df["year"] = df["date"].dt.year
+        split_column = "year"
+
+    elif by == "month":
+        df["month"] = df["date"].dt.month
+        split_column = "month"
+
+    if by == "station":
+        split_column = "id"
+
+    print("Splitting by", by, "with", len(df), "samples")
+
+    train_test_splits = []
+
+    # GroupShuffleSplit instance
+    gss = GroupShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=42)
+
+    for train_idx, test_idx in gss.split(df, groups=df[split_column]):
+
+        train = df.iloc[train_idx]
+        test = df.iloc[test_idx]
+
+        if len(test) < min_test_samples:
+
+            if len(test) < min_test_samples:
+                print("Skipping split due to insufficient test samples")
+                continue
+
+        train_test_splits.append((train, test))
+
+    return train_test_splits
