@@ -60,3 +60,5 @@ def get_nn_model_(input_dim: int, hidden_units: int = 64) -> Sequential:
         ]
     )
     return model
+
+

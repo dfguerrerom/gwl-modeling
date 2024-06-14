@@ -33,6 +33,7 @@ explain_vars = [
     "prec_3_sum",
     "prec_7_sum",
     "prec_30_sum",
+    # "land_forms",
 ]
 
 biophysical_vars = [
@@ -44,6 +45,7 @@ biophysical_vars = [
     "distance",
     "dir",
     "acc",
+    "land_forms",
 ]
 
 response_var = ["gwl_cm"]

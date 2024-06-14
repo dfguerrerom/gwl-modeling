@@ -361,13 +361,14 @@ def get_extra_non_temporal():
     drain_direction = hydro_dir.select("b1").rename("dir")
     hydro_acc = ee.Image("WWF/HydroSHEDS/15ACC")
     flow_acc = hydro_acc.select("b1").rename("acc")
+    land_forms = ee.Image("CSP/ERGo/1_0/Global/SRTM_landforms").rename("land_forms")
 
     # //Merge water bodies and canals
 
     all_water = water.merge(canals)
     distance = all_water.distance(25000)
 
-    return distance.addBands(drain_direction).addBands(flow_acc)
+    return distance.addBands(drain_direction).addBands(flow_acc).addBands(land_forms)
 
 
 def get_explanatory_composite(

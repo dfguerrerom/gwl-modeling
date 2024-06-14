@@ -160,3 +160,33 @@ def get_precipitation_plot(
     plt.tight_layout()
     plt.xticks(rotation=45)  # Rotate the x-axis labels for better readability
     plt.show()
+
+
+def plot_observed_vs_predicted(y_test, y_pred_test, model_name: str = None):
+    """Use seaborn to plot the observed vs predicted values"""
+
+    # Customizing with professional aesthetics
+    sns.set_theme(style="whitegrid")
+
+    # Plot the residuals after fitting a linear model
+    plt.figure(figsize=(4, 3))
+    sns.residplot(x=y_test, y=y_pred_test, lowess=True, color="g")
+    plt.xlabel("Observed values")
+    plt.ylabel("Residuals")
+    plt.title("Residuals plot")
+    plt.show()
+
+    # Plot the observed vs predicted values
+    plt.figure(figsize=(4, 3))
+    sns.scatterplot(x=y_test, y=y_pred_test)
+    # Add a line for perfect correlation
+    plt.plot(
+        [y_test.min(), y_test.max()],
+        [y_test.min(), y_test.max()],
+        color="r",
+        linestyle="--",
+    )
+    plt.xlabel("Observed values")
+    plt.ylabel("Predicted values")
+    plt.title("Observed vs predicted values")
+    plt.show()
