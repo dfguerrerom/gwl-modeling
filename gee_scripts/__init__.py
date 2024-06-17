@@ -2,6 +2,13 @@ from .directories import *
 import ee
 import os
 import json
+import toml
+
+
+# read toml file
+config_file = Path("__file__").parent / "gee_scripts/config.toml"
+config = toml.load(config_file)
+project = config.get("config").get("ee-project")
 
 
 # This is a hard-copy of the original function from sepal_ui
@@ -31,7 +38,9 @@ def init_ee() -> None:
 
         # Extract the project name from credentials
         _credentials = json.loads(credential_file_path.read_text())
+
         project_id = _credentials.get("project_id", _credentials.get("project", None))
+        project_id = project if project else project_id
 
         if not project_id:
             raise NameError(
@@ -52,6 +61,8 @@ def init_ee() -> None:
         # if the user is in local development the authentication should
         # already be available
         ee.Initialize(project=project_id)
+
+        print(f"Earth Engine initialized successfully, with {project_id}")
 
 
 init_ee()
