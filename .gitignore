@@ -3,6 +3,10 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# ignore config files
+gee_scripts/config.toml
+*.h5
+
 # C extensions
 *.so
 *.tif
