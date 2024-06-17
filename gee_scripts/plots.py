@@ -170,7 +170,7 @@ def plot_observed_vs_predicted(y_test, y_pred_test, model_name: str = None):
 
     # Plot the residuals after fitting a linear model
     plt.figure(figsize=(4, 3))
-    sns.residplot(x=y_test, y=y_pred_test, lowess=True, color="g")
+    sns.residplot(x=y_test, y=y_pred_test, color="g")
     plt.xlabel("Observed values")
     plt.ylabel("Residuals")
     plt.title("Residuals plot")

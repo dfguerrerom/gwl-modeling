@@ -12,7 +12,7 @@ def export_classifier(training_data: ee.FeatureCollection, model_name: str):
         model_name: name of the model to export, this name refers to the    column that indicates if the sample belongs to the model or not.
     """
 
-    features = training_data.filter(ee.Filter.eq(model_name, 1))
+    features = training_data
     print(f"Exporting model {model_name} with {features.size().getInfo()} samples")
 
     n_trees = 250
@@ -35,3 +35,5 @@ def export_classifier(training_data: ee.FeatureCollection, model_name: str):
     task.start()
 
     print(f"Exported model {model_gee_id}")
+
+    return model_gee_id

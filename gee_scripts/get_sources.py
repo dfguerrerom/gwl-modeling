@@ -372,18 +372,23 @@ def get_extra_non_temporal():
 
 
 def get_explanatory_composite(
-    target_date: str, ee_region: ee.Geometry, max_days_offset: int = 30
+    target_date: str, ee_region: ee.Geometry, accumulated_days: int = 1
 ):
-    """Get the closest explanatory image to the target date"""
+    """Get the closest explanatory image to the target date
+
+    Args:
+        target_date: date to get the image for
+        ee_region: region to get the image for
+        accumulated_days: number of days to accumulate after the target date
+    """
 
     # search range
     max_days_offset = 30
     year = dt.strptime(target_date, "%Y-%m-%d").year
 
     # get start and end date using dt
-    date = dt.strptime(target_date, "%Y-%m-%d")
-    start_date = date - timedelta(days=max_days_offset)
-    end_date = date + timedelta(days=max_days_offset)
+    start_date = dt.strptime(target_date, "%Y-%m-%d")
+    end_date = date + timedelta(days=accumulated_days)
 
     # if end_date is in the future, set it to today
     if end_date > dt.now():
@@ -419,23 +424,28 @@ def get_explanatory_composite(
     s1_composite = s1_composite.sort("diff")
 
     # Get the first image (closest to the target date)
-    s1_composite = ee.Image(s1_composite.first())
+    if accumulated_days > 1:
+        # Aggregate the images by mean
+        s1_composite = s1_composite.reduce(ee.Reducer.mean())
+    else:
+        s1_composite = s1_composite.first()
 
     # Get the image timestamp
     s1_date = (
         ee.Date(s1_composite.get("system:time_start")).format("YYYY-MM-dd").getInfo()
     )
 
-    if s1_date != target_date:
-        print(
-            "WARNING: closest image is not the target date, using closest image: {} instead".format(
-                s1_date
-            )
-        )
+    # if s1_date != target_date:
+    #     print(
+    #         "WARNING: closest image is not the target date, using closest image: {} instead".format(
+    #             s1_date
+    #         )
+    #     )
 
     date_range = ee.Date(target_date).getRange("day")
     gldas_image = get_gldas(date_range, ee_region)
     gpm_iamge = get_gpm(date_range, ee_region)
+    gpm_sum = get_gpm_sum(date_range, ee_region)
 
     # create date of the year from string datetime
     date = dt.strptime(s1_date, "%Y-%m-%d")
@@ -445,6 +455,7 @@ def get_explanatory_composite(
     composite = (
         s1_composite.addBands(gldas_image)
         .addBands(gpm_iamge)
+        .addBands(gpm_sum)
         .addBands(get_hansen(year))
         .addBands(get_srtm())
         .addBands(get_globcover())
