@@ -190,3 +190,22 @@ def plot_observed_vs_predicted(y_test, y_pred_test, model_name: str = None):
     plt.ylabel("Predicted values")
     plt.title("Observed vs predicted values")
     plt.show()
+
+
+def plot_ts(df, variable: str = "gwl_cm", title: str = "Groundwater level vs date"):
+
+    assert df.date.dtype == "datetime64[ns]", "Date column must be in datetime format"
+
+    # Sort the data by date
+    df = df.sort_values(by="date")
+
+    # Group the
+
+    plt.figure(figsize=(15, 5))
+    sns.lineplot(data=df, x="date", y=variable, hue="id")
+    plt.title(f"Groundwater level vs date {title}")
+
+    # remove the legend
+    plt.legend().remove()
+
+    plt.show()
