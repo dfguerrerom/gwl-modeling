@@ -289,7 +289,7 @@ from sklearn.model_selection import GroupShuffleSplit, train_test_split
 
 def split_dataset(
     df: pd.DataFrame,
-    by: Literal["year", "month", "station"],
+    by: Literal["year", "month", "station", "observation"],
     n_splits=5,
     test_size=0.2,
     min_test_samples=20,
@@ -309,6 +309,10 @@ def split_dataset(
 
     df = df.copy()
 
+    # Create an unique index column for observations
+    df.reset_index(inplace=True)
+    df["index"] = df.index
+
     # Assert that the date column is in datetime format in all cases
     assert df["date"].dtypes == "datetime64[ns]"
 
@@ -320,6 +324,9 @@ def split_dataset(
         df["month"] = df["date"].dt.month
         split_column = "month"
 
+    elif by == "observation":
+        split_column = "index"
+
     if by == "station":
         split_column = "id"
 
@@ -330,11 +337,11 @@ def split_dataset(
     # GroupShuffleSplit instance
     gss = GroupShuffleSplit(n_splits=n_splits, test_size=test_size, random_state=42)
 
-    for train_idx, test_idx in gss.split(df, groups=df[split_column]):
+    for train_idx, test_idx in gss.split(df, groups=df.get(split_column)):
 
         train = df.iloc[train_idx]
         test = df.iloc[test_idx]
-
+        print("test", len(test), "train", len(train))
         if len(test) < min_test_samples:
 
             if len(test) < min_test_samples:

@@ -29,7 +29,7 @@ def get_s1_dates(aoi) -> list:
             )
         )
         .aggregate_array("system:time_start")
-        .filter(ee.Filter.gt("item", 1420070400000))
+        .filter(ee.Filter.gt("item", 1546300800000))  # 2019-01-01
         .getInfo()
     )
 
@@ -371,9 +371,7 @@ def get_extra_non_temporal():
     return distance.addBands(drain_direction).addBands(flow_acc).addBands(land_forms)
 
 
-def get_explanatory_composite(
-    target_date: str, ee_region: ee.Geometry, accumulated_days: int = 1
-):
+def get_explanatory_composite(target_date: str, ee_region: ee.Geometry):
     """Get the closest explanatory image to the target date
 
     Args:
@@ -383,12 +381,15 @@ def get_explanatory_composite(
     """
 
     # search range
-    max_days_offset = 30
     year = dt.strptime(target_date, "%Y-%m-%d").year
 
+    print("target_date", target_date)
     # get start and end date using dt
-    start_date = dt.strptime(target_date, "%Y-%m-%d")
-    end_date = date + timedelta(days=accumulated_days)
+    start_date = dt.strptime(target_date, "%Y-%m-%d") - timedelta(days=1)
+    end_date = dt.strptime(target_date, "%Y-%m-%d") + timedelta(days=1)
+
+    print("start_date", start_date)
+    print("end_date", end_date)
 
     # if end_date is in the future, set it to today
     if end_date > dt.now():
@@ -401,46 +402,30 @@ def get_explanatory_composite(
     # which is the difference between the image timestamp and the target date
 
     # Map the function over the image collection
-    s1_composite = (
-        s1_collection.create(
-            region=ee_region,
-            start_date=date_range.start(),
-            end_date=date_range.end(),
-            add_ND_ratio=False,
-            speckle_filter="QUEGAN",
-            radiometric_correction="TERRAIN",
-            slope_correction_dict={
-                "model": "surface",
-                "dem": "USGS/SRTMGL1_003",
-                "buffer": 50,
-            },  #'CGIAR/SRTM90_V4'
-            db=True,
-        )
-        .map(lambda img: add_diff(img, target_date))
-        .select(["LIA", "VH", "VV", "VVVH_ratio", "angle"])
-    )
-
-    # Sort the image collection by the diff property
-    s1_composite = s1_composite.sort("diff")
-
-    # Get the first image (closest to the target date)
-    if accumulated_days > 1:
-        # Aggregate the images by mean
-        s1_composite = s1_composite.reduce(ee.Reducer.mean())
-    else:
-        s1_composite = s1_composite.first()
+    s1_composite = s1_collection.create(
+        region=ee_region,
+        start_date=date_range.start(),
+        end_date=date_range.end(),
+        add_ND_ratio=False,
+        speckle_filter="QUEGAN",
+        radiometric_correction="TERRAIN",
+        slope_correction_dict={
+            "model": "surface",
+            "dem": "USGS/SRTMGL1_003",
+            "buffer": 50,
+        },  #'CGIAR/SRTM90_V4'
+        db=True,
+    ).select(["LIA", "VH", "VV", "VVVH_ratio", "angle"])
 
     # Get the image timestamp
     s1_date = (
-        ee.Date(s1_composite.get("system:time_start")).format("YYYY-MM-dd").getInfo()
+        ee.Date(s1_composite.first().get("system:time_start"))
+        .format("YYYY-MM-dd")
+        .getInfo()
     )
 
-    # if s1_date != target_date:
-    #     print(
-    #         "WARNING: closest image is not the target date, using closest image: {} instead".format(
-    #             s1_date
-    #         )
-    #     )
+    # Composite all the images in the search range
+    s1_composite = s1_composite.median()
 
     date_range = ee.Date(target_date).getRange("day")
     gldas_image = get_gldas(date_range, ee_region)
@@ -464,6 +449,6 @@ def get_explanatory_composite(
         .addBands(ee.Image.constant(doy).rename(["doy"]))
         .addBands(get_extra_non_temporal())
         .toFloat()
-    )
+    ).set({"system:time_start": ee.Date(s1_date)})
 
     return composite
