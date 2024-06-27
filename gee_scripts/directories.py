@@ -43,3 +43,14 @@ def get_export_folder(output_folder: str, base_folder: str = "gwl-modeling") -> 
         create_folder(new_folder)
 
     return full_path
+
+
+def create_image_collection(image_collection_path: Path):
+
+    # first check if the output folder exists
+    if ee.data.getInfo(str(image_collection_path)):
+        return image_collection_path
+
+    ee.data.createAsset({"type": "ImageCollection"}, str(image_collection_path))
+
+    return image_collection_path

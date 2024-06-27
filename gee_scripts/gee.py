@@ -31,7 +31,13 @@ def export_classifier(training_data: ee.FeatureCollection, model_name: str):
     if ee.data.getInfo(model_gee_id):
         raise ValueError(f"Model {model_gee_id} already exists")
 
-    task = ee.batch.Export.classifier.toAsset(classifier, description, model_gee_id)
+    task = ee.batch.Export.classifier.toAsset(
+        **{
+            "classifier": classifier,
+            "description": description,
+            "assetId": model_gee_id,
+        }
+    )
     task.start()
 
     print(f"Exported model {model_gee_id}")

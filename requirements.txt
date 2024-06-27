@@ -11,6 +11,7 @@ geopandas
 tqdm
 seaborn
 matplotlib
+plotly
 scipy
 scikit-learn
 pylab-sdk

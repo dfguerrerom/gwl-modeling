@@ -2,6 +2,7 @@ from eeSAR.s1 import s1_collection
 from datetime import datetime as dt, timedelta
 
 import ee
+import pandas as pd
 
 
 def get_s1_dates(aoi) -> list:
@@ -32,6 +33,28 @@ def get_s1_dates(aoi) -> list:
         .filter(ee.Filter.gt("item", 1546300800000))  # 2019-01-01
         .getInfo()
     )
+
+
+def get_s1_str_dates(target_phu: ee.Geometry, start_date: str, end_date: str) -> list:
+
+    # Get all the dates of the Sentinel 1 images for the target phu
+    all_s1_dates = get_s1_dates(aoi=target_phu)
+
+    # Convert the dates to a string format
+    all_str_date = [
+        dt.fromtimestamp(date / 1000).strftime("%Y-%m-%d") for date in all_s1_dates
+    ]
+
+    dates_df = pd.DataFrame(all_str_date, columns=["date"])
+    # drop duplicates
+    dates_df = dates_df.drop_duplicates()
+    dates_df["date"] = pd.to_datetime(dates_df["date"])
+
+    dates = dates_df[(dates_df["date"] >= start_date) & (dates_df["date"] <= end_date)]
+
+    all_str_date = dates["date"].dt.strftime("%Y-%m-%d").tolist()
+
+    return all_str_date
 
 
 def get_s1_image(date: str, aoi: ee.Geometry) -> ee.Image:

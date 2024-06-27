@@ -64,6 +64,9 @@ temporal_expl = [
     "sm_30",
 ]
 
-west_region_ids = [1, 6, 5, 2, 4]
-center_region_ids = [7, 8, 10]
-east_region_ids = [3, 9]
+regions_ids = {
+    "sumatra": [1, 6, 5, 2, 4],
+    "kalimantan": [7, 8, 10],
+    "estern": [3, 9],
+    "all": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+}
