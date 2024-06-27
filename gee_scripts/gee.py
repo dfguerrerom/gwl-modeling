@@ -51,7 +51,7 @@ def estimate_to_gee(
     aoi_name: str,
     ee_aoi: ee.Geometry,
     target_date: str,
-    ee_classifier: ee.classifier.Classifier,
+    ee_classifier,
 ):
     """Export the estimated GWL image using a given model and target date.
 
