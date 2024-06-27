@@ -1,5 +1,7 @@
+from pathlib import Path
+from gee_scripts.get_sources import get_explanatory_composite
 from .parameters import explain_vars
-from gee_scripts.directories import get_export_folder
+from gee_scripts.directories import create_image_collection, get_export_folder
 
 import ee.batch
 
@@ -43,3 +45,46 @@ def export_classifier(training_data: ee.FeatureCollection, model_name: str):
     print(f"Exported model {model_gee_id}")
 
     return model_gee_id
+
+
+def estimate_to_gee(
+    aoi_name: str,
+    ee_aoi: ee.Geometry,
+    target_date: str,
+    ee_classifier: ee.classifier.Classifier,
+):
+    """Export the estimated GWL image using a given model and target date.
+
+
+    Args:
+        target_date: must coincide with the date of S1 image
+    """
+
+    model_name = Path(ee_classifier.getInfo()["id"]).name
+
+    # Get explanatory composite closest to target date
+    image = get_explanatory_composite(
+        target_date=target_date,
+        ee_region=ee_aoi,
+    ).select(explain_vars)
+
+    output_image_name = f"{aoi_name}_{target_date}"
+    estimated_image = (
+        image.select(explain_vars)
+        .classify(ee_classifier)
+        .set({"model": model_name, "date": target_date})
+    )
+
+    export_folder = get_export_folder(output_folder=f"estimation/best_models/")
+    image_collection_path = create_image_collection(export_folder / model_name)
+
+    # create export task
+    return ee.batch.Export.image.toAsset(
+        **{
+            "image": estimated_image,
+            "description": output_image_name,
+            "assetId": str(image_collection_path / output_image_name),
+            "region": ee_aoi,
+            "scale": 100,
+        }
+    )

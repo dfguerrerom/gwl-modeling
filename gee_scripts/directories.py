@@ -46,6 +46,7 @@ def get_export_folder(output_folder: str, base_folder: str = "gwl-modeling") -> 
 
 
 def create_image_collection(image_collection_path: Path):
+    """Creates an empty iamge collection if it doesn't exist"""
 
     # first check if the output folder exists
     if ee.data.getInfo(str(image_collection_path)):
