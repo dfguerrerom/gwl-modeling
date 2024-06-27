@@ -28,9 +28,8 @@ def get_s1_dates(aoi) -> list:
                     [ee.Filter.eq("orbitProperties_pass", orbit) for orbit in orbits]
                 )
             )
-        )
-        .aggregate_array("system:time_start")
-        .filter(ee.Filter.gt("item", 1546300800000))  # 2019-01-01
+        ).aggregate_array("system:time_start")
+        # .filter(ee.Filter.gt("item", 1546300800000))  # 2019-01-01
         .getInfo()
     )
 
