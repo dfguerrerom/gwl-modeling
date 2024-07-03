@@ -399,19 +399,14 @@ def get_explanatory_composite(target_date: str, ee_region: ee.Geometry):
     Args:
         target_date: date to get the image for
         ee_region: region to get the image for
-        accumulated_days: number of days to accumulate after the target date
     """
 
     # search range
     year = dt.strptime(target_date, "%Y-%m-%d").year
 
-    print("target_date", target_date)
     # get start and end date using dt
     start_date = dt.strptime(target_date, "%Y-%m-%d") - timedelta(days=1)
     end_date = dt.strptime(target_date, "%Y-%m-%d") + timedelta(days=1)
-
-    print("start_date", start_date)
-    print("end_date", end_date)
 
     # if end_date is in the future, set it to today
     if end_date > dt.now():
@@ -472,5 +467,7 @@ def get_explanatory_composite(target_date: str, ee_region: ee.Geometry):
         .addBands(get_extra_non_temporal())
         .toFloat()
     ).set({"system:time_start": ee.Date(s1_date)})
+
+    print("Composite for date: ", s1_date, " created.")
 
     return composite
