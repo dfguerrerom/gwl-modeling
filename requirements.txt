@@ -2,7 +2,6 @@ toml
 
 earthengine-api
 
-
 git+https://github.com/BuddyVolly/eeSar.git
 
 numpy
@@ -20,3 +19,5 @@ pylab-sdk
 rasterio
 dask[diagnostics]
 tensorflow==2.12.0
+
+git+https://github.com/12rambau/sepal_ui.git@sepal_pre_release

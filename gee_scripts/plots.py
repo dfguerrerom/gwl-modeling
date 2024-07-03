@@ -162,15 +162,21 @@ def get_precipitation_plot(
     plt.show()
 
 
-def plot_observed_vs_predicted(y_test, y_pred_test, model_name: str = None):
+def plot_observed_vs_predicted(y_test, y_pred_test, color=1):
     """Use seaborn to plot the observed vs predicted values"""
+
+    # generate two random colors for the plot based on the color parameter
+
+    colors = ["#297496", "#0C9B53", "#23A4D2"]
+
+    color = colors[color]
 
     # Customizing with professional aesthetics
     sns.set_theme(style="whitegrid")
 
     # Plot the residuals after fitting a linear model
     plt.figure(figsize=(4, 3))
-    sns.residplot(x=y_test, y=y_pred_test, color="g")
+    sns.residplot(x=y_test, y=y_pred_test, color=color)
     plt.xlabel("Observed values")
     plt.ylabel("Residuals")
     plt.title("Residuals plot")
@@ -178,7 +184,7 @@ def plot_observed_vs_predicted(y_test, y_pred_test, model_name: str = None):
 
     # Plot the observed vs predicted values
     plt.figure(figsize=(4, 3))
-    sns.scatterplot(x=y_test, y=y_pred_test)
+    sns.scatterplot(x=y_test, y=y_pred_test, color=color)
     # Add a line for perfect correlation
     plt.plot(
         [y_test.min(), y_test.max()],

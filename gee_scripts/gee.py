@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal
 from gee_scripts.get_sources import get_explanatory_composite
 from .parameters import explain_vars
 from gee_scripts.directories import create_image_collection, get_export_folder
@@ -31,7 +32,8 @@ def export_classifier(training_data: ee.FeatureCollection, model_name: str):
     model_gee_id = str(get_export_folder("models") / description)
 
     if ee.data.getInfo(model_gee_id):
-        raise ValueError(f"Model {model_gee_id} already exists")
+        print(f"Alert!!! Model {model_gee_id} already exists")
+        return model_gee_id
 
     task = ee.batch.Export.classifier.toAsset(
         **{
@@ -87,4 +89,36 @@ def estimate_to_gee(
             "region": ee_aoi,
             "scale": 100,
         }
+    )
+
+
+def reduce_to(image, geometry, reducer: Literal["mean", "sum", "std"] = "mean"):
+    """Return the mean of the classification band of a GWL estimated image within a geometry."""
+
+    reducers = {
+        "mean": ee.Reducer.mean(),
+        "sum": ee.Reducer.median(),
+        "std": ee.Reducer.stdDev(),
+    }
+
+    reduced_value = image.select("classification").reduceRegion(
+        reducer=reducers[reducer], geometry=geometry, scale=100, maxPixels=1e9
+    )
+
+    return ee.Feature(
+        None,
+        {
+            "reduced_value": reduced_value.get("classification"),
+            "date": ee.Date(image.get("date")).format("YYYY-MM-dd"),
+        },
+    )
+
+
+def get_footprint(image):
+    return ee.Feature(
+        image.geometry(),
+        {
+            "system:time_start": image.get("system:time_start"),
+            "system:id": image.get("system:id"),
+        },
     )
