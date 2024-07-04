@@ -122,3 +122,15 @@ def get_footprint(image):
             "system:id": image.get("system:id"),
         },
     )
+
+
+def reduce_df_by(grouped_df, reduce_by):
+    """Reduce the grouped DataFrame by the specified method."""
+
+    reducers = {
+        "mean": grouped_df.mean(),
+        "median": grouped_df.median(),
+        "std": grouped_df.std(),
+    }
+
+    return reducers[reduce_by]
