@@ -20,4 +20,5 @@ rasterio
 dask[diagnostics]
 tensorflow==2.12.0
 
+# This is used for map visualization
 git+https://github.com/12rambau/sepal_ui.git@sepal_pre_release
