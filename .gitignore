@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 data/
+old_data/
 # ignore config files
 gee_scripts/config.toml
 *.h5
