@@ -4,6 +4,10 @@ __pycache__/
 *$py.class
 data/
 old_data/
+bosf/
+PabloNB/
+PabloNotebooks/
+notebooks/
 # ignore config files
 gee_scripts/config.toml
 *.h5
