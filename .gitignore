@@ -8,6 +8,7 @@ bosf/
 PabloNB/
 PabloNotebooks/
 notebooks/
+_data/
 # ignore config files
 gee_scripts/config.toml
 *.h5

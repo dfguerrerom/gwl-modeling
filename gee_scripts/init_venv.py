@@ -1,14 +1,19 @@
 #!/usr/bin/python3
 
-
+import toml
 import argparse
 import subprocess
 from pathlib import Path
 from shutil import rmtree
-
+import gdown
 from colorama import Fore, init
 
-# init colors for all plateforms
+# init colors for all platforms
+
+config_file = Path("__file__").parent / "gee_scripts/config.toml"
+config = toml.load(config_file)
+data_folder_url = config.get("config").get("data-url")
+
 init()
 
 # init parser
@@ -96,6 +101,18 @@ def main() -> None:
     print(
         f'{Fore.GREEN}The test venv have been created, it can be found in the kernel list as "{display_name} .{Fore.RESET}'
     )
+
+    # download the data folder
+    print(
+        f"{Fore.LIGHTCYAN_EX}Downloading the data folder from {data_folder_url}{Fore.RESET}"
+    )
+
+    # Create the data folder if it doesn't exist
+    data_folder = Path.cwd() / "data"
+    data_folder.mkdir(exist_ok=True)
+
+    # Download the data folder
+    gdown.download_folder(data_folder)
 
     return
 

@@ -7,8 +7,17 @@ import toml
 
 # read toml file
 config_file = Path("__file__").parent / "gee_scripts/config.toml"
-config = toml.load(config_file)
-project = config.get("config").get("ee-project")
+
+
+def get_project_from_conf():
+    # Try to read the project name from the config file
+    try:
+        config = toml.load(config_file)
+        return config.get("config").get("ee-project")
+    except Exception as e:
+        print(
+            f"Error reading the config file, you should rename the file to config.toml"
+        )
 
 
 # This is a hard-copy of the original function from sepal_ui
@@ -39,8 +48,11 @@ def init_ee() -> None:
         # Extract the project name from credentials
         _credentials = json.loads(credential_file_path.read_text())
 
-        project_id = _credentials.get("project_id", _credentials.get("project", None))
-        project_id = project if project else project_id
+        project_id = (
+            _credentials.get("project_id")
+            or _credentials.get("project")
+            or get_project_from_conf()
+        )
 
         if not project_id:
             raise NameError(
