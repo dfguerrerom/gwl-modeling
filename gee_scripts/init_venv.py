@@ -1,6 +1,4 @@
 #!/usr/bin/python3
-
-import toml
 import argparse
 import subprocess
 from pathlib import Path
