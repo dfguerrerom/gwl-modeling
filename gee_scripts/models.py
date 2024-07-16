@@ -51,11 +51,11 @@ def get_pca(df: pd.DataFrame, n_components: int = 2) -> pd.DataFrame:
     return stations_pca
 
 
-def get_random_forest():
+def get_random_forest(best_params=None):
     """Get a random forest regressor."""
 
     # Best parameters from the hyperparameter tuning
-    best_params = {
+    best_params = best_params or {
         "max_depth": 20,
         "min_samples_leaf": 1,
         "min_samples_split": 10,
@@ -72,7 +72,6 @@ def get_random_forest():
     #     criterion="friedman_mse",
     #     n_jobs=-1,
     # )
-    # print("ASDF")
 
     return RandomForestRegressor(
         n_estimators=250,
@@ -221,6 +220,7 @@ def bootstrap(
     train_size=0.8,
     explain_vars=explain_vars,
     bootstrap_by=Literal["stations", "observations"],
+    best_params=None,
 ):
     """Run a random forest model on the data."""
 
@@ -245,7 +245,7 @@ def bootstrap(
         X_train, X_test = gdf_train[explain_vars], gdf_test[explain_vars]
         y_train, y_test = gdf_train[variable], gdf_test[variable]
 
-        regr = get_random_forest()
+        regr = get_random_forest(best_params)
         regr.fit(X_train, y_train)
         y_pred_test = regr.predict(X_test)
 
