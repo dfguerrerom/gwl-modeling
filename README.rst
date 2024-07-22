@@ -28,3 +28,17 @@ Initialize the project and create a virtual environment
 
 
 
+Best PHU selection
+==================
+
+.. image:: img/training_types.jpg
+    :width: 100%
+    :align: center
+
+.. image:: img/evaluation_metric.jpg
+    :width: 100%
+    :align: center
+
+.. image:: img/phu_ranking.jpg
+    :width: 100%
+    :align: center
