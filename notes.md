@@ -32,3 +32,12 @@ python3 gee_scripts/init_venv.py
 # 12/06/2024
 
 - 1_1_get_explanatory.ipynb I have modified this file to remove the -100 to 20 threshold that we have set in the past. And we will ask all the variables for those missing station/dates.
+
+# 13/09/2024
+
+I have updated the code to process BOSF data but I had problems to get the non temporal variables, specifically Hansan, since this dataset has changed and it now doesn't contain the yearly mean values.
+The dataset that I use to use is being deprecated and now it has problems with the year 2020... either we remove those explanatory, we get them from other source or we skip 2020:
+
+```js
+Error: Asset 'UMD/hansen/global_forest_change_2020_v1_8@1641990741293807' is corrupted (Error code: 3)
+```

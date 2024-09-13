@@ -357,7 +357,7 @@ def get_extra_non_temporal():
     # //Merge water bodies and canals
 
     all_water = water.merge(canals)
-    distance = all_water.distance(25000)
+    distance = all_water.distance(25000).rename("distance")
 
     return distance.addBands(drain_direction).addBands(flow_acc).addBands(land_forms)
 
