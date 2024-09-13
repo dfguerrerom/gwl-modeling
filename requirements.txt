@@ -30,3 +30,4 @@ gdown # To download the base data
 # for linting
 pre-commit
 nbstripout # To clean the notebook before commit
+aiogoogle
