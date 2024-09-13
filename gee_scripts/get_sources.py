@@ -56,37 +56,6 @@ def get_s1_str_dates(target_phu: ee.Geometry, start_date: str, end_date: str) ->
     return all_str_date
 
 
-def get_s1_image(date: str, aoi: ee.Geometry) -> ee.Image:
-    """Check if there is a Sentinel-1 image for a given date and location.
-
-    The different filters are based on the eeSar.s1.s1_collection.create() function.
-    """
-
-    orbits = ["ASCENDING", "DESCENDING"]
-    start_date = dt.strptime(date, "%Y-%m-%d")
-    end_date = start_date + timedelta(days=1)
-
-    # get the image
-    return (
-        ee.ImageCollection("COPERNICUS/S1_GRD_FLOAT")
-        .filterBounds(aoi)
-        .filterDate(start_date, end_date)
-        .filterMetadata("resolution_meters", "equals", 10)
-        .filter(ee.Filter.eq("instrumentMode", "IW"))
-        .filter(
-            ee.Filter.And(
-                ee.Filter.listContains("transmitterReceiverPolarisation", "VV"),
-                ee.Filter.listContains("transmitterReceiverPolarisation", "VH"),
-            )
-        )
-        .filter(
-            ee.Filter.Or(
-                [ee.Filter.eq("orbitProperties_pass", orbit) for orbit in orbits]
-            )
-        )
-    )
-
-
 def add_date_difference(image, t):
     return image.set(
         "dateDist",
@@ -201,8 +170,8 @@ def get_globcover() -> ee.Image:
     )
 
 
-def get_s1_image(date: ee.DateRange, aoi: ee.Geometry.Point) -> ee.Image:
-    """Get the Sentinel-1 image for a given date and location."""
+def get_s1_collection(date: ee.DateRange, aoi: ee.Geometry.Point) -> ee.Image:
+    """Get the Sentinel-1 collection for a given date and location."""
     image = s1_collection.create(
         region=aoi,
         start_date=date.start(),
@@ -216,7 +185,7 @@ def get_s1_image(date: ee.DateRange, aoi: ee.Geometry.Point) -> ee.Image:
             "buffer": 50,
         },  #'CGIAR/SRTM90_V4'
         db=True,
-    ).median()
+    )
 
     return image
 
@@ -234,7 +203,7 @@ def get_tsscans(date: str, aoi: ee.Geometry) -> ee.Image:
         )
         return image.addBands(lin, None, True)
 
-    image = get_s1_image(date, aoi)
+    image = get_s1_collection(date, aoi).median()
 
     track_nr = image.get("relativeOrbitNumber_start")
     orbit = image.get("orbitProperties_pass").getInfo()
@@ -388,7 +357,7 @@ def get_extra_non_temporal():
     # //Merge water bodies and canals
 
     all_water = water.merge(canals)
-    distance = all_water.distance(25000)
+    distance = all_water.distance(25000).rename("distance")
 
     return distance.addBands(drain_direction).addBands(flow_acc).addBands(land_forms)
 
