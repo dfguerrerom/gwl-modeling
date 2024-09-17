@@ -41,3 +41,8 @@ The dataset that I use to use is being deprecated and now it has problems with t
 ```js
 Error: Asset 'UMD/hansen/global_forest_change_2020_v1_8@1641990741293807' is corrupted (Error code: 3)
 ```
+
+# 17/09/2024
+
+- We solved that problem by downloading from source the Hansen data for the year 2020 and the upload it to gee (Pablo did). Now we can use it as before.
+- There were some points missing in the "all temporal variables", after inspecting the issue, it was related to the way as the script to get the temporary data works: it first gets all the dates from the points that are in a region, and then loops over the dates to get the data, we added a new "extra" mode, so it could also get images for the closest image to that date.
