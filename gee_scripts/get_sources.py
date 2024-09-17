@@ -304,9 +304,18 @@ def get_hansen(year):
     # use the latest hansen data if the year is not available
     year = 2022 if year >= last_hansen_year else year
 
-    # we start from version 1.0 for 2012
-    version = year - hansen_start_year
-    hansen = ee.Image(f"UMD/hansen/global_forest_change_{year}_v1_{version}")
+    if year == 2020:
+        # There's a problem with this year, we had to download it manually
+        hansen = ee.Image(
+            "projects/ee-marortpab/assets/FAO/indonesia/gwl/bosf/Hansen_GFC_2020_v1_8_last_00N_110E"
+        ).select(
+            ["b1", "b2", "b3", "b4"], ["last_b30", "last_b40", "last_b50", "last_b70"]
+        )
+
+    else:
+        # we start from version 1.0 for 2012
+        version = year - hansen_start_year
+        hansen = ee.Image(f"UMD/hansen/global_forest_change_{year}_v1_{version}")
 
     b3 = hansen.select(["last_b30"], ["B3"])
     b4 = hansen.select(["last_b40"], ["B4"])
