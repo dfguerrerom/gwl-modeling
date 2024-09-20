@@ -80,22 +80,32 @@ def get_gldas(date: ee.DateRange, aoi: ee.Geometry) -> ee.Image:
 
     gldas = (
         ee.ImageCollection("NASA/GLDAS/V021/NOAH/G025/T3H")
-        .select("SoilMoi0_10cm_inst")
+        .select(["SoilMoi0_10cm_inst", "SoilMoi10_40cm_inst", "SoilMoi40_100cm_inst"])
         .filterBounds(aoi)
         .filterDate(from_, to)
         # .map(set_resample)
         .map(lambda img: add_date_difference(img, to))
     )
 
-    sm_gldas = gldas.sort("dateDist").first().rename("sm_1")
+    sm_gldas = gldas.sort("dateDist").first().rename(["sm_1", "sm_1_40", "sm_1_100"])
 
     gldas_3day = gldas.filterDate(to.advance(ee.Number(-3), "days"), to)
-    gldas_3day = gldas_3day.sum().divide(gldas_3day.count()).rename("sm_3")
+    gldas_3day = (
+        gldas_3day.sum()
+        .divide(gldas_3day.count())
+        .rename(["sm_3", "sm_3_40", "sm_3_100"])
+    )
 
     gldas_7day = gldas.filterDate(to.advance(ee.Number(-7), "days"), to)
-    gldas_7day = gldas_7day.sum().divide(gldas_7day.count()).rename("sm_7")
+    gldas_7day = (
+        gldas_7day.sum()
+        .divide(gldas_7day.count())
+        .rename(["sm_7", "sm_7_40", "sm_7_100"])
+    )
 
-    gldas_30day = gldas.sum().divide(gldas.count()).rename("sm_30")
+    gldas_30day = (
+        gldas.sum().divide(gldas.count()).rename(["sm_30", "sm_30_40", "sm_30_100"])
+    )
 
     return sm_gldas.addBands(gldas_3day).addBands(gldas_7day).addBands(gldas_30day)
 
