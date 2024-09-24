@@ -291,7 +291,7 @@ def get_gldas_stats(aoi: ee.Geometry) -> ee.Image:
 
     return gldas.reduce(
         ee.Reducer.mean().combine(ee.Reducer.stdDev(), None, True)
-    ).rename("gldas_mean", "gldas_stddev")
+    ).rename(["gldas_mean", "gldas_stddev"])
 
 
 def get_gedi(aoi: ee.Geometry) -> ee.Image:
@@ -301,7 +301,7 @@ def get_gedi(aoi: ee.Geometry) -> ee.Image:
         ee.ImageCollection("users/potapovpeter/GEDI_V27")
         .filterBounds(aoi)
         .first()
-        .rename("canopy_height")
+        .rename(["canopy_height"])
     )
 
 
@@ -359,6 +359,8 @@ def add_diff(image, target_date: str):
 
 def get_extra_non_temporal():
     """Returns the distance, dir and acc bands."""
+
+    # This data comes from https://code.earthengine.google.com/6c3eeb929a5ee8a42f55234b58796c0a
 
     water = ee.FeatureCollection(
         "users/marortpab/FAO/SEPAL/2023_trainings/smm/water_bodies_phu_buff_1_km_def"
